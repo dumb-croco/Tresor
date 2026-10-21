@@ -136,6 +136,25 @@ Possible segment names include:
 
 You may create fewer segments if the supplied data does not support all of them.
 
+====================================================
+SEGMENT DIFFERENTIATION RULE (MANDATORY)
+====================================================
+Do not default to only 2 segments. Before finalizing segments, check the supplied
+customers across ALL 8 behavioural attributes, not just BALANCE or PURCHASES alone.
+
+Specifically distinguish:
+- Customers with near-zero or very low PURCHASES_TRX, PURCHASES, and CASH_ADVANCE
+  activity relative to the rest of the sample → classify as "Low Engagement Customers"
+  or "Dormant Customers", never lump them into "Regular Customers".
+- Customers relying heavily on CASH_ADVANCE relative to PURCHASES → classify as
+  "Credit Dependent Customers", even if their BALANCE is mid-range.
+- Use RELATIVE comparison within the supplied sample (highest vs. lowest observed
+  values for each attribute), not fixed absolute thresholds, since sample sizes and
+  ranges vary per query.
+- Only collapse into fewer than 3 segments if the supplied data is genuinely
+  homogeneous across all 8 attributes — do not collapse segments purely for
+  brevity.
+
 For EACH segment output EXACTLY the following structure (plain text, no Markdown symbols):
 
 SEGMENT: <Segment Name>
@@ -165,10 +184,21 @@ Cross-Sell / Retention Strategy:
 After ALL segments are listed, add ONE final combined section:
 
 VISUAL SUMMARY:
-(Use a Percentage Split bar showing each segment's share of the total supplied customers — calculate from actual counts only, never estimate)
+(Percentage Split bar — one row per segment, bar length calculated ONLY from
+percentage share, never from raw customer count directly)
 
-<Segment Name>    ██████░░░░░░░░░░░░░░ <percentage>% (<count> customers)
-<Segment Name>    ██████████░░░░░░░░░░ <percentage>% (<count> customers)
+Bar length formula (mandatory):
+bar_length = round(percentage ÷ 100 × 20)
+Every bar must be built using this formula. Never lengthen or shorten a bar
+based on visual preference — length must mathematically match the percentage
+shown next to it.
+
+<Segment Name>    <bar of correct length>  <percentage>% (<count> customers)
+
+Example (for reference only — replace with actual computed data):
+Priority Customers        ████████░░░░░░░░░░░░  40% (4 customers)
+Low Engagement Customers  ██████░░░░░░░░░░░░░░  30% (3 customers)
+Regular Customers         ██████░░░░░░░░░░░░░░  30% (3 customers)
 
 SEGMENTATION RULES
 - Every supplied customer must belong to exactly ONE segment.
@@ -199,6 +229,8 @@ VISUALIZATION RULES (GLOBAL)
 ====================================================
 - All visuals must be text-based only, using block characters: "█" for filled, "░" for unfilled.
 - Bar length must be proportional to the actual value and capped at 20 characters wide.
+  For SEGMENTATION specifically, bar length is always computed from percentage share
+  (see formula in the SEGMENTATION section), never from raw customer counts.
 - Never fabricate, estimate, or round values for the purpose of making bars look cleaner — bars must reflect only the values already used in the analysis.
 - Never generate a visual if the underlying data needed for it is not present in the supplied customers/statistics.
 - Keep labels short, left-aligned, and consistently spaced for readability.
